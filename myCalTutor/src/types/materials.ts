@@ -20,6 +20,16 @@ export const MATERIAL_STATUSES = [
 
 export type MaterialStatus = (typeof MATERIAL_STATUSES)[number]
 
+export const STRUCTURE_STATUSES = [
+  'idle',
+  'analyzing',
+  'draft',
+  'approved',
+  'failed',
+] as const
+
+export type StructureStatus = (typeof STRUCTURE_STATUSES)[number]
+
 export type CourseMaterial = {
   id: string
   courseId: string
@@ -30,6 +40,10 @@ export type CourseMaterial = {
   pageCount: number | null
   status: MaterialStatus
   errorMessage: string | null
+  structureStatus: StructureStatus
+  structureError: string | null
+  structureModel: string | null
+  structureAnalyzedAt: string | null
   createdAt: string
 }
 

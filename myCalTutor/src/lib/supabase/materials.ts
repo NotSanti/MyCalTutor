@@ -10,6 +10,7 @@ import type {
   MaterialStatus,
   MaterialType,
   MaterialWithPages,
+  StructureStatus,
 } from '@/types/materials'
 
 export { isSupabaseConfigured }
@@ -17,6 +18,8 @@ export { isSupabaseConfigured }
 const COURSE_ID = 'calculus-i'
 const BUCKET = 'course-materials'
 const PAGE_BATCH_SIZE = 50
+const MATERIAL_COLUMNS =
+  'id, course_id, name, original_filename, material_type, storage_path, page_count, status, error_message, structure_status, structure_error, structure_model, structure_analyzed_at, created_at'
 
 type MaterialRow = {
   id: string
@@ -28,6 +31,10 @@ type MaterialRow = {
   page_count: number | null
   status: MaterialStatus
   error_message: string | null
+  structure_status: StructureStatus
+  structure_error: string | null
+  structure_model: string | null
+  structure_analyzed_at: string | null
   created_at: string
 }
 
@@ -64,6 +71,10 @@ function mapMaterial(row: MaterialRow): CourseMaterial {
     pageCount: row.page_count,
     status: row.status,
     errorMessage: row.error_message,
+    structureStatus: row.structure_status,
+    structureError: row.structure_error,
+    structureModel: row.structure_model,
+    structureAnalyzedAt: row.structure_analyzed_at,
     createdAt: row.created_at,
   }
 }
@@ -99,9 +110,7 @@ export async function fetchMaterials(): Promise<CourseMaterial[]> {
   const client = requireClient()
   const result = await client
     .from('course_materials')
-    .select(
-      'id, course_id, name, original_filename, material_type, storage_path, page_count, status, error_message, created_at',
-    )
+    .select(MATERIAL_COLUMNS)
     .eq('course_id', COURSE_ID)
     .order('created_at', { ascending: false })
 
@@ -116,9 +125,7 @@ export async function fetchMaterialWithPages(
   const [materialResult, pagesResult] = await Promise.all([
     client
       .from('course_materials')
-      .select(
-        'id, course_id, name, original_filename, material_type, storage_path, page_count, status, error_message, created_at',
-      )
+      .select(MATERIAL_COLUMNS)
       .eq('id', materialId)
       .single(),
     client
@@ -237,9 +244,7 @@ export async function uploadCourseMaterial(input: {
       storage_path: storagePath,
       status: 'uploading',
     })
-    .select(
-      'id, course_id, name, original_filename, material_type, storage_path, page_count, status, error_message, created_at',
-    )
+    .select(MATERIAL_COLUMNS)
     .single()
 
   throwIfError(insertResult.error)

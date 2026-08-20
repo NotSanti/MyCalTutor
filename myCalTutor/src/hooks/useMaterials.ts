@@ -25,7 +25,9 @@ export function useMaterials() {
     refetchInterval: (query) => {
       const busy = query.state.data?.some(
         (material) =>
-          material.status === 'uploading' || material.status === 'extracting',
+          material.status === 'uploading' ||
+          material.status === 'extracting' ||
+          material.structureStatus === 'analyzing',
       )
       return busy ? 2000 : false
     },

@@ -1,6 +1,7 @@
 import { createBrowserRouter, Navigate } from 'react-router'
 
 import { AppShell } from '@/components/layout/AppShell'
+import { CourseSetupPage } from '@/pages/course/CourseSetupPage'
 import { LearnPage } from '@/pages/learn/LearnPage'
 import { LessonPage } from '@/pages/lesson/LessonPage'
 import { MaterialInspectorPage } from '@/pages/materials/MaterialInspectorPage'
@@ -15,6 +16,7 @@ export const router = createBrowserRouter([
       { path: 'learn', element: <LearnPage /> },
       { path: 'materials', element: <MaterialsPage /> },
       { path: 'materials/:materialId', element: <MaterialInspectorPage /> },
+      { path: 'course/setup', element: <CourseSetupPage /> },
     ],
   },
   {

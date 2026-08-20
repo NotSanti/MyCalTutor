@@ -1,4 +1,4 @@
-import { Files, GraduationCap, type LucideIcon } from 'lucide-react'
+import { Files, GraduationCap, ListTree, type LucideIcon } from 'lucide-react'
 
 export type NavItem = {
   to: string
@@ -9,4 +9,5 @@ export type NavItem = {
 export const navItems: NavItem[] = [
   { to: '/learn', label: 'Learn', icon: GraduationCap },
   { to: '/materials', label: 'Materials', icon: Files },
+  { to: '/course/setup', label: 'Setup', icon: ListTree },
 ]
