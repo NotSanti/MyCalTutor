@@ -88,11 +88,14 @@ If choosing between architectural purity and functionality that will help the us
 
 After completing a milestone:
 
-1. Summarize changes
-2. List important files changed
-3. Describe database changes
-4. State known limitations
-5. Mention manual steps, if any
-6. Stop
+1. Run tests (`npm run lint` and `npm run build`; add targeted tests when the milestone introduced logic that is hard to verify by hand)
+2. Commit and push to `main`
+3. Confirm the Vercel production deploy is Ready
+4. Summarize changes
+5. List important files changed
+6. Describe database changes
+7. State known limitations
+8. Mention the production URL
+9. Stop
 
 Do not automatically begin the next milestone.
