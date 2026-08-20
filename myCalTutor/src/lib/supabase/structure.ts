@@ -13,6 +13,9 @@ import type {
 
 export { isSupabaseConfigured }
 
+const SECTION_COLUMNS =
+  'id, material_id, parent_section_id, title, section_number, section_type, start_page, end_page, sort_order, concepts_status, concepts_error, concepts_model, concepts_extracted_at'
+
 type SectionRow = {
   id: string
   material_id: string
@@ -23,6 +26,10 @@ type SectionRow = {
   start_page: number | null
   end_page: number | null
   sort_order: number
+  concepts_status: SourceSection['conceptsStatus']
+  concepts_error: string | null
+  concepts_model: string | null
+  concepts_extracted_at: string | null
 }
 
 function requireClient() {
@@ -51,6 +58,10 @@ function mapSection(row: SectionRow): SourceSection {
     startPage: row.start_page,
     endPage: row.end_page,
     sortOrder: row.sort_order,
+    conceptsStatus: row.concepts_status,
+    conceptsError: row.concepts_error,
+    conceptsModel: row.concepts_model,
+    conceptsExtractedAt: row.concepts_extracted_at,
   }
 }
 
@@ -76,14 +87,30 @@ export async function fetchSourceSections(
   const client = requireClient()
   const result = await client
     .from('source_sections')
-    .select(
-      'id, material_id, parent_section_id, title, section_number, section_type, start_page, end_page, sort_order',
-    )
+    .select(SECTION_COLUMNS)
     .eq('material_id', materialId)
     .order('sort_order', { ascending: true })
 
   throwIfError(result.error)
   return ((result.data ?? []) as SectionRow[]).map(mapSection)
+}
+
+export async function fetchSourceSection(
+  sectionId: string,
+): Promise<SourceSection> {
+  const client = requireClient()
+  const result = await client
+    .from('source_sections')
+    .select(SECTION_COLUMNS)
+    .eq('id', sectionId)
+    .single()
+
+  throwIfError(result.error)
+  if (!result.data) {
+    throw new Error('Section was not found.')
+  }
+
+  return mapSection(result.data as SectionRow)
 }
 
 export async function updateSourceSection(

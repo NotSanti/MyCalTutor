@@ -58,3 +58,50 @@ export const textbookStructureJsonSchema = {
     },
   },
 } as const
+
+export const extractConceptsRequestSchema = z.object({
+  sectionId: z.string().uuid(),
+})
+
+export const extractedConceptSchema = z.object({
+  name: z.string().min(1),
+  description: z.string().min(1),
+  importance: z.number().int().min(1).max(5),
+  difficulty: z.number().int().min(1).max(5),
+  sourcePages: z.array(z.number().int().positive()).min(1),
+})
+
+export const extractedConceptsSchema = z.object({
+  concepts: z.array(extractedConceptSchema).min(1),
+})
+
+export type ExtractConceptsRequest = z.infer<typeof extractConceptsRequestSchema>
+export type ExtractedConcepts = z.infer<typeof extractedConceptsSchema>
+
+export const extractedConceptsJsonSchema = {
+  type: 'object',
+  additionalProperties: false,
+  required: ['concepts'],
+  properties: {
+    concepts: {
+      type: 'array',
+      minItems: 1,
+      items: {
+        type: 'object',
+        additionalProperties: false,
+        required: ['name', 'description', 'importance', 'difficulty', 'sourcePages'],
+        properties: {
+          name: { type: 'string' },
+          description: { type: 'string' },
+          importance: { type: 'integer', minimum: 1, maximum: 5 },
+          difficulty: { type: 'integer', minimum: 1, maximum: 5 },
+          sourcePages: {
+            type: 'array',
+            minItems: 1,
+            items: { type: 'integer', minimum: 1 },
+          },
+        },
+      },
+    },
+  },
+} as const

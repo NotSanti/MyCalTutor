@@ -160,8 +160,8 @@ export function CourseSetupPage() {
         <CardHeader>
           <CardTitle>Detected course structure</CardTitle>
           <CardDescription>
-            Rename, delete, or reorder before you approve. This does not change
-            the Learn path yet.
+            Rename, delete, or reorder before you approve. After approval, open
+            Concepts on a section to extract a reviewable list.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -179,6 +179,7 @@ export function CourseSetupPage() {
           ) : (
             <StructureTree
               chapters={chapters}
+              showConceptLinks={textbook.structureStatus === 'approved'}
               onRename={(input) => {
                 void actions.rename(input)
               }}

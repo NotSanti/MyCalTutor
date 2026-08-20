@@ -415,3 +415,6 @@ enabled = true
 
 [functions.analyze-document]
 verify_jwt = false
+
+[functions.extract-concepts]
+verify_jwt = false

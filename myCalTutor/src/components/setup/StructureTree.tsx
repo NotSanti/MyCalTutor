@@ -1,5 +1,6 @@
 import { ChevronDown, ChevronUp, Trash2 } from 'lucide-react'
 import { useState } from 'react'
+import { Link } from 'react-router'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -14,6 +15,7 @@ function SectionEditor({
   canMoveUp,
   canMoveDown,
   indented = false,
+  conceptsHref,
 }: {
   item: SourceSection
   onSave: (input: { title: string; sectionNumber: string }) => void
@@ -23,6 +25,7 @@ function SectionEditor({
   canMoveUp: boolean
   canMoveDown: boolean
   indented?: boolean
+  conceptsHref?: string
 }) {
   const [title, setTitle] = useState(item.title)
   const [sectionNumber, setSectionNumber] = useState(item.sectionNumber)
@@ -96,6 +99,11 @@ function SectionEditor({
       >
         <Trash2 />
       </Button>
+      {conceptsHref ? (
+        <Button asChild variant="outline" size="sm">
+          <Link to={conceptsHref}>Concepts</Link>
+        </Button>
+      ) : null}
     </div>
   )
 }
@@ -105,6 +113,7 @@ export function StructureTree({
   onRename,
   onDelete,
   onReorder,
+  showConceptLinks = false,
 }: {
   chapters: StructureChapter[]
   onRename: (input: {
@@ -114,6 +123,7 @@ export function StructureTree({
   }) => void
   onDelete: (sectionId: string) => void
   onReorder: (firstId: string, secondId: string) => void
+  showConceptLinks?: boolean
 }) {
   return (
     <div className="flex flex-col gap-5">
@@ -137,6 +147,9 @@ export function StructureTree({
               key={section.id}
               item={section}
               indented
+              conceptsHref={
+                showConceptLinks ? `/course/concepts/${section.id}` : undefined
+              }
               canMoveUp={sectionIndex > 0}
               canMoveDown={sectionIndex < chapter.sections.length - 1}
               onSave={(input) => onRename({ sectionId: section.id, ...input })}

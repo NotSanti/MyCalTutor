@@ -1,6 +1,7 @@
 import type { z } from 'npm:zod@4'
 
-export const STRUCTURE_MODEL = 'gpt-4o-mini'
+export const DEFAULT_MODEL = 'gpt-4o-mini'
+export const STRUCTURE_MODEL = DEFAULT_MODEL
 
 export type AIRequest<T> = {
   system: string
@@ -8,6 +9,7 @@ export type AIRequest<T> = {
   schema: z.ZodType<T>
   jsonSchema: Record<string, unknown>
   schemaName: string
+  model?: string
 }
 
 export type AIProvider = {
@@ -33,7 +35,7 @@ export const openaiProvider: AIProvider = {
         'content-type': 'application/json',
       },
       body: JSON.stringify({
-        model: STRUCTURE_MODEL,
+        model: request.model ?? DEFAULT_MODEL,
         temperature: 0,
         messages: [
           { role: 'system', content: request.system },
