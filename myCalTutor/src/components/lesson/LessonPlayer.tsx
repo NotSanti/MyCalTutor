@@ -6,16 +6,19 @@ import { LessonBlockView } from '@/components/lesson/LessonBlockView'
 import { MathText } from '@/components/math/MathText'
 import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
+import { activityIdForBlock } from '@/features/course/lookups'
 import { useProgress } from '@/hooks/useProgress'
-import type { Lesson } from '@/types/course'
+import { recordActivityAttempt } from '@/lib/supabase/queries'
+import type { Course, Lesson } from '@/types/course'
 
 type LessonPlayerProps = {
+  course: Course
   lesson: Lesson
   unitTitle?: string
 }
 
-export function LessonPlayer({ lesson, unitTitle }: LessonPlayerProps) {
-  const { progress, saveLessonProgress, completeLesson } = useProgress()
+export function LessonPlayer({ course, lesson, unitTitle }: LessonPlayerProps) {
+  const { progress, saveLessonProgress, completeLesson } = useProgress(course)
   const totalSteps = lesson.content.blocks.length + 2
   const [stepIndex, setStepIndex] = useState(() => {
     if (progress.inProgress?.lessonId === lesson.id) {
@@ -38,12 +41,12 @@ export function LessonPlayer({ lesson, unitTitle }: LessonPlayerProps) {
 
     if (nextIndex >= totalSteps - 1) {
       const alreadyCompleted = progress.completedLessonIds.includes(lesson.id)
-      completeLesson(lesson.id, lesson.xpReward)
+      void completeLesson(lesson.id, lesson.xpReward, lesson.skillId)
       setAwardedXp(alreadyCompleted ? 0 : lesson.xpReward)
       return
     }
 
-    saveLessonProgress(lesson.id, nextIndex)
+    void saveLessonProgress(lesson.id, nextIndex)
   }
 
   return (
@@ -93,6 +96,15 @@ export function LessonPlayer({ lesson, unitTitle }: LessonPlayerProps) {
             key={stepIndex}
             block={block}
             onContinue={() => goTo(stepIndex + 1)}
+            onAttempt={({ answer, isCorrect }) => {
+              void recordActivityAttempt({
+                activityId: activityIdForBlock(lesson.id, stepIndex - 1),
+                answer,
+                isCorrect,
+              }).catch(() => {
+                // Attempts are diagnostic; don't block the lesson.
+              })
+            }}
           />
         ) : null}
 

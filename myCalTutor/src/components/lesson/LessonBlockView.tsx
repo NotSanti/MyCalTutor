@@ -16,9 +16,14 @@ import type { LessonBlock } from '@/types/course'
 type LessonBlockViewProps = {
   block: LessonBlock
   onContinue: () => void
+  onAttempt?: (input: { answer: string; isCorrect: boolean }) => void
 }
 
-export function LessonBlockView({ block, onContinue }: LessonBlockViewProps) {
+export function LessonBlockView({
+  block,
+  onContinue,
+  onAttempt,
+}: LessonBlockViewProps) {
   if (block.type === 'explanation') {
     return (
       <div className="flex w-full flex-col items-center gap-6">
@@ -61,18 +66,20 @@ export function LessonBlockView({ block, onContinue }: LessonBlockViewProps) {
     )
   }
 
-  return <ActivityBlock block={block} onContinue={onContinue} />
+  return <ActivityBlock block={block} onContinue={onContinue} onAttempt={onAttempt} />
 }
 
 function ActivityBlock({
   block,
   onContinue,
+  onAttempt,
 }: {
   block: Extract<
     LessonBlock,
     { type: 'multiple-choice' | 'numeric-answer' | 'short-answer' }
   >
   onContinue: () => void
+  onAttempt?: (input: { answer: string; isCorrect: boolean }) => void
 }) {
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [inputValue, setInputValue] = useState('')
@@ -80,17 +87,23 @@ function ActivityBlock({
 
   function check() {
     if (block.type === 'multiple-choice' && selectedId) {
-      setFeedback({ correct: evaluateMultipleChoice(selectedId, block) })
+      const isCorrect = evaluateMultipleChoice(selectedId, block)
+      onAttempt?.({ answer: selectedId, isCorrect })
+      setFeedback({ correct: isCorrect })
       return
     }
 
     if (block.type === 'numeric-answer') {
-      setFeedback({ correct: evaluateNumeric(inputValue, block) })
+      const isCorrect = evaluateNumeric(inputValue, block)
+      onAttempt?.({ answer: inputValue, isCorrect })
+      setFeedback({ correct: isCorrect })
       return
     }
 
     if (block.type === 'short-answer') {
-      setFeedback({ correct: evaluateShortAnswer(inputValue, block) })
+      const isCorrect = evaluateShortAnswer(inputValue, block)
+      onAttempt?.({ answer: inputValue, isCorrect })
+      setFeedback({ correct: isCorrect })
     }
   }
 

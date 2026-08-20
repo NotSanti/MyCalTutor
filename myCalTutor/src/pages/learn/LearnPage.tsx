@@ -12,26 +12,65 @@ import {
   CardTitle,
 } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
+import { Skeleton } from '@/components/ui/skeleton'
 import {
-  calculusICourse,
   getLessonById,
   getSkillByLessonId,
   getUnitForSkill,
-} from '@/features/course/fixtures/calculus-i'
+} from '@/features/course/lookups'
+import { useCourse } from '@/hooks/useCourse'
 import { useProgress } from '@/hooks/useProgress'
 import { getContinueLessonId } from '@/lib/progress/unlock'
+import { isSupabaseConfigured } from '@/lib/supabase/client'
 
 export function LearnPage() {
-  const { progress } = useProgress()
-  const continueLessonId = getContinueLessonId(calculusICourse, progress)
+  const courseQuery = useCourse()
+  const { progress } = useProgress(courseQuery.data)
+
+  if (!isSupabaseConfigured()) {
+    return (
+      <div className="mx-auto max-w-xl px-6 py-16 text-center">
+        <h1 className="font-heading text-2xl font-semibold">Supabase is not configured</h1>
+        <p className="mt-2 text-sm text-muted-foreground">
+          Add VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY to load the course.
+        </p>
+      </div>
+    )
+  }
+
+  if (courseQuery.isPending) {
+    return (
+      <div className="mx-auto flex w-full max-w-3xl flex-col gap-6 px-6 py-10">
+        <Skeleton className="h-10 w-48" />
+        <Skeleton className="h-32 w-full" />
+        <Skeleton className="h-64 w-full" />
+      </div>
+    )
+  }
+
+  if (courseQuery.isError || !courseQuery.data) {
+    return (
+      <div className="mx-auto max-w-xl px-6 py-16 text-center">
+        <h1 className="font-heading text-2xl font-semibold">Could not load the course</h1>
+        <p className="mt-2 text-sm text-muted-foreground">
+          {courseQuery.error instanceof Error
+            ? courseQuery.error.message
+            : 'Check that the Calculus I seed has been applied.'}
+        </p>
+      </div>
+    )
+  }
+
+  const course = courseQuery.data
+  const continueLessonId = getContinueLessonId(course, progress)
   const continueLesson = continueLessonId
-    ? getLessonById(continueLessonId)
+    ? getLessonById(course, continueLessonId)
     : undefined
   const continueSkill = continueLesson
-    ? getSkillByLessonId(continueLesson.id)
+    ? getSkillByLessonId(course, continueLesson.id)
     : undefined
   const continueUnit = continueSkill
-    ? getUnitForSkill(continueSkill.id)
+    ? getUnitForSkill(course, continueSkill.id)
     : undefined
 
   const totalSteps = continueLesson
@@ -48,7 +87,7 @@ export function LearnPage() {
     <div className="mx-auto flex w-full max-w-3xl flex-col gap-8 px-6 py-10">
       <header className="flex flex-col gap-4">
         <h1 className="font-heading text-3xl font-semibold tracking-tight">
-          {calculusICourse.title}
+          {course.title}
         </h1>
         <div className="flex flex-wrap items-center gap-3 text-sm">
           <span className="inline-flex items-center gap-1.5 rounded-full bg-surface-muted px-3 py-1 font-medium">
@@ -95,7 +134,7 @@ export function LearnPage() {
         </Card>
       )}
 
-      <CoursePath course={calculusICourse} progress={progress} />
+      <CoursePath course={course} progress={progress} />
     </div>
   )
 }
