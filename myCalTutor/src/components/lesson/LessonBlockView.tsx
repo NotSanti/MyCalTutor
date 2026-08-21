@@ -13,6 +13,25 @@ import {
 import { cn } from '@/lib/utils'
 import type { LessonBlock } from '@/types/course'
 
+function SourceCitation({ pages }: { pages?: number[] }) {
+  if (!pages || pages.length === 0) {
+    return null
+  }
+
+  const sorted = [...new Set(pages)].sort((a, b) => a - b)
+  const first = sorted[0]
+  const last = sorted[sorted.length - 1]
+  const contiguous = last - first + 1 === sorted.length
+  const label =
+    sorted.length === 1
+      ? `Source: p. ${first}`
+      : contiguous
+        ? `Source: pp. ${first}–${last}`
+        : `Source: pp. ${sorted.join(', ')}`
+
+  return <p className="mt-3 text-xs text-muted-foreground">{label}</p>
+}
+
 type LessonBlockViewProps = {
   block: LessonBlock
   onContinue: () => void
@@ -32,6 +51,7 @@ export function LessonBlockView({
             {block.title}
           </h2>
           <MathText className="mt-3 block text-base leading-relaxed" text={block.content} />
+          <SourceCitation pages={block.sourcePages} />
         </div>
         <Button size="lg" onClick={onContinue}>
           Continue
@@ -58,6 +78,7 @@ export function LessonBlockView({
               </li>
             ))}
           </ol>
+          <SourceCitation pages={block.sourcePages} />
         </div>
         <Button size="lg" onClick={onContinue}>
           Continue

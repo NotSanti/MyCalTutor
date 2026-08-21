@@ -23,7 +23,7 @@ import {
   useSourceSection,
 } from '@/hooks/useConcepts'
 import { isSupabaseConfigured } from '@/lib/supabase/client'
-import type { ConceptsStatus } from '@/types/structure'
+import type { ConceptsStatus, LessonStatus } from '@/types/structure'
 
 function statusLabel(status: ConceptsStatus) {
   switch (status) {
@@ -31,6 +31,19 @@ function statusLabel(status: ConceptsStatus) {
       return 'Not extracted'
     case 'extracting':
       return 'Extracting'
+    case 'ready':
+      return 'Ready'
+    case 'failed':
+      return 'Failed'
+  }
+}
+
+function lessonStatusLabel(status: LessonStatus) {
+  switch (status) {
+    case 'idle':
+      return 'Not generated'
+    case 'generating':
+      return 'Generating'
     case 'ready':
       return 'Ready'
     case 'failed':
@@ -213,7 +226,15 @@ export function ConceptInspectorPage() {
 
   const section = sectionQuery.data
   const concepts = conceptsQuery.data ?? []
-  const busy = actions.isExtracting || section.conceptsStatus === 'extracting'
+  const extracting = actions.isExtracting || section.conceptsStatus === 'extracting'
+  const generating = actions.isGenerating || section.lessonStatus === 'generating'
+  const canGenerate =
+    !extracting &&
+    !generating &&
+    section.conceptsStatus === 'ready' &&
+    concepts.length > 0 &&
+    section.startPage != null &&
+    section.endPage != null
   const heading = [section.sectionNumber, section.title]
     .filter(Boolean)
     .join(' — ')
@@ -254,7 +275,7 @@ export function ConceptInspectorPage() {
 
       <div>
         <Button
-          disabled={busy}
+          disabled={extracting}
           onClick={() => {
             void actions.extract().catch((error: unknown) => {
               toast.error(
@@ -271,7 +292,63 @@ export function ConceptInspectorPage() {
         </Button>
       </div>
 
-      {conceptsQuery.isPending || busy ? (
+      <Card className="shadow-sm">
+        <CardHeader>
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div className="flex flex-col gap-1">
+              <CardTitle>Lesson</CardTitle>
+              <CardDescription>
+                Generate one playable lesson from this section’s reviewed
+                concepts and pages.
+              </CardDescription>
+            </div>
+            <Badge
+              variant={
+                section.lessonStatus === 'failed' ? 'destructive' : 'secondary'
+              }
+            >
+              {lessonStatusLabel(section.lessonStatus)}
+            </Badge>
+          </div>
+        </CardHeader>
+        {section.lessonError ? (
+          <CardContent>
+            <p className="text-sm text-destructive">{section.lessonError}</p>
+          </CardContent>
+        ) : null}
+        <CardFooter className="flex flex-wrap gap-2">
+          <Button
+            disabled={!canGenerate}
+            onClick={() => {
+              void actions.generate().catch((error: unknown) => {
+                toast.error(
+                  error instanceof Error
+                    ? error.message
+                    : 'Could not generate the lesson.',
+                )
+              })
+            }}
+          >
+            {generating
+              ? 'Generating…'
+              : section.lessonStatus === 'ready' ||
+                  section.lessonStatus === 'failed'
+                ? 'Regenerate lesson'
+                : 'Generate lesson'}
+          </Button>
+          {section.lessonStatus === 'ready' && section.generatedLessonId ? (
+            <Button asChild variant="secondary" disabled={generating}>
+              <Link to={`/lesson/${section.generatedLessonId}`}>Play lesson</Link>
+            </Button>
+          ) : (
+            <Button variant="secondary" disabled>
+              Play lesson
+            </Button>
+          )}
+        </CardFooter>
+      </Card>
+
+      {conceptsQuery.isPending || extracting ? (
         <div className="flex flex-col gap-3">
           <Skeleton className="h-40 w-full" />
           <Skeleton className="h-40 w-full" />

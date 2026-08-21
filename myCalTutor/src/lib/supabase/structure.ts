@@ -14,7 +14,7 @@ import type {
 export { isSupabaseConfigured }
 
 const SECTION_COLUMNS =
-  'id, material_id, parent_section_id, title, section_number, section_type, start_page, end_page, sort_order, concepts_status, concepts_error, concepts_model, concepts_extracted_at'
+  'id, material_id, parent_section_id, title, section_number, section_type, start_page, end_page, sort_order, concepts_status, concepts_error, concepts_model, concepts_extracted_at, generated_lesson_id, lesson_status, lesson_error, lesson_model, lesson_generated_at'
 
 type SectionRow = {
   id: string
@@ -30,6 +30,11 @@ type SectionRow = {
   concepts_error: string | null
   concepts_model: string | null
   concepts_extracted_at: string | null
+  generated_lesson_id: string | null
+  lesson_status: SourceSection['lessonStatus']
+  lesson_error: string | null
+  lesson_model: string | null
+  lesson_generated_at: string | null
 }
 
 function requireClient() {
@@ -62,6 +67,11 @@ function mapSection(row: SectionRow): SourceSection {
     conceptsError: row.concepts_error,
     conceptsModel: row.concepts_model,
     conceptsExtractedAt: row.concepts_extracted_at,
+    generatedLessonId: row.generated_lesson_id,
+    lessonStatus: row.lesson_status,
+    lessonError: row.lesson_error,
+    lessonModel: row.lesson_model,
+    lessonGeneratedAt: row.lesson_generated_at,
   }
 }
 

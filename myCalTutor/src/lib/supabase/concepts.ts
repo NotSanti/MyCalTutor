@@ -177,6 +177,11 @@ const extractResponseSchema = z.object({
   error: z.string().optional(),
 })
 
+const generateLessonResponseSchema = z.object({
+  lessonId: z.string().optional(),
+  error: z.string().optional(),
+})
+
 export async function extractConcepts(sectionId: string) {
   const client = requireClient()
   const result = await client.functions.invoke('extract-concepts', {
@@ -184,6 +189,22 @@ export async function extractConcepts(sectionId: string) {
   })
 
   const fromData = extractResponseSchema.safeParse(result.data)
+  if (fromData.success && fromData.data.error) {
+    throw new Error(fromData.data.error)
+  }
+
+  if (result.error) {
+    throw new Error(result.error.message)
+  }
+}
+
+export async function generateLesson(sectionId: string) {
+  const client = requireClient()
+  const result = await client.functions.invoke('generate-lesson', {
+    body: { sectionId },
+  })
+
+  const fromData = generateLessonResponseSchema.safeParse(result.data)
   if (fromData.success && fromData.data.error) {
     throw new Error(fromData.data.error)
   }

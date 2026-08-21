@@ -12,12 +12,14 @@ export type ExplanationBlock = {
   type: 'explanation'
   title: string
   content: string
+  sourcePages?: number[]
 }
 
 export type WorkedExampleBlock = {
   type: 'worked-example'
   problem: string
   steps: string[]
+  sourcePages?: number[]
 }
 
 export type MultipleChoiceBlock = {

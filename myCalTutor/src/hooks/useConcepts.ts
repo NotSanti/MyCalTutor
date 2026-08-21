@@ -6,6 +6,7 @@ import {
   deleteConcept,
   extractConcepts,
   fetchConceptsForSection,
+  generateLesson,
   updateConcept,
 } from '@/lib/supabase/concepts'
 import { fetchSourceSection } from '@/lib/supabase/structure'
@@ -24,7 +25,10 @@ export function useSourceSection(sectionId: string | undefined) {
     queryFn: () => fetchSourceSection(sectionId as string),
     enabled: Boolean(sectionId) && isSupabaseConfigured(),
     refetchInterval: (query) =>
-      query.state.data?.conceptsStatus === 'extracting' ? 2000 : false,
+      query.state.data?.conceptsStatus === 'extracting' ||
+      query.state.data?.lessonStatus === 'generating'
+        ? 2000
+        : false,
   })
 }
 
@@ -95,11 +99,27 @@ export function useConceptActions(sectionId: string | undefined) {
     },
   })
 
+  const generateMutation = useMutation({
+    mutationFn: () => {
+      if (!sectionId) {
+        throw new Error('No section selected.')
+      }
+
+      return generateLesson(sectionId)
+    },
+    onSettled: async () => {
+      await invalidate()
+      await queryClient.invalidateQueries({ queryKey: ['course'] })
+    },
+  })
+
   return {
     extract: () => extractMutation.mutateAsync(),
+    generate: () => generateMutation.mutateAsync(),
     save: saveMutation.mutateAsync,
     remove: removeMutation.mutateAsync,
     create: createMutation.mutateAsync,
     isExtracting: extractMutation.isPending,
+    isGenerating: generateMutation.isPending,
   }
 }
