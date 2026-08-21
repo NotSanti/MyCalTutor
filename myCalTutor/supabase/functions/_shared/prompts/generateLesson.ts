@@ -41,7 +41,7 @@ CONSTRAINTS
 - simpleCheck must be multiple-choice or numeric-answer.
 - For multiple-choice: exactly four options with ids a, b, c, d; answer is that id; numericAnswer is null; keywords is [].
 - For numeric-answer: options is []; answer may repeat the number as a string; numericAnswer is the number; keywords is [].
-- For short-answer: options is []; numericAnswer is null; keywords are lowercase words that should appear in a correct response.
+- For short-answer: options is []; numericAnswer is null; keywords are 1 to 3 ordinary English words or short phrases a student would type. Every keyword is required. Do not use words, formulas, or symbols that already appear in the prompt. Do not use LaTeX or interval notation as keywords. Every keyword must also appear in the explanation.
 - estimatedMinutes should be 8–15. xpReward should be 20–30.
 
 EXPECTED OUTPUT

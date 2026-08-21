@@ -133,9 +133,11 @@ function toActivityBlock(activity: GeneratedActivityInput): LessonBlock {
     }
   }
 
-  const keywords = activity.keywords
-    .map((keyword) => keyword.trim())
-    .filter(Boolean)
+  const keywords = sanitizeShortAnswerKeywords(
+    activity.prompt,
+    activity.explanation,
+    activity.keywords,
+  )
   if (keywords.length === 0) {
     throw new Error('Short-answer questions need at least one keyword.')
   }
@@ -146,6 +148,68 @@ function toActivityBlock(activity: GeneratedActivityInput): LessonBlock {
     keywords,
     explanation: activity.explanation,
   }
+}
+
+function sanitizeShortAnswerKeywords(
+  prompt: string,
+  explanation: string,
+  keywords: string[],
+): string[] {
+  const promptLower = prompt.toLowerCase()
+  const explanationLower = explanation.toLowerCase()
+  const kept = [
+    ...new Set(
+      keywords
+        .map((keyword) => keyword.trim())
+        .filter((keyword) => keyword.length > 0)
+        .filter((keyword) => !promptLower.includes(keyword.toLowerCase()))
+        .filter((keyword) => explanationLower.includes(keyword.toLowerCase())),
+    ),
+  ]
+  if (kept.length > 0) {
+    return kept.slice(0, 3)
+  }
+
+  const stopwords = new Set([
+    'a',
+    'an',
+    'and',
+    'are',
+    'as',
+    'at',
+    'be',
+    'by',
+    'for',
+    'from',
+    'how',
+    'if',
+    'in',
+    'is',
+    'it',
+    'of',
+    'on',
+    'or',
+    'that',
+    'the',
+    'this',
+    'to',
+    'what',
+    'why',
+    'with',
+    'all',
+  ])
+  const fallback = explanation
+    .toLowerCase()
+    .replace(/[^a-z0-9+\-^.\s]/g, ' ')
+    .split(/\s+/)
+    .filter(
+      (token) =>
+        token.length > 2 &&
+        !stopwords.has(token) &&
+        !promptLower.includes(token),
+    )
+
+  return [...new Set(fallback)].slice(0, 3)
 }
 
 export function toLessonContent(input: {
